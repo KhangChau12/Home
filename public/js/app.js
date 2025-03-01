@@ -1,6 +1,6 @@
 // Global variables
 let photos = [];
-let filteredPhotos = [];
+let filteredPhotos = []; 
 let currentPhotoIndex = 0;
 
 // DOM Elements
@@ -31,10 +31,10 @@ photoDateInput.valueAsDate = new Date();
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', initialize);
-showUploadModalBtn.addEventListener('click', () => openModal(uploadModal));
+showUploadModalBtn.addEventListener('click', () => showModal(uploadModal)); // Đổi từ openModal sang showModal
 closeUploadModalBtn.addEventListener('click', () => closeModal(uploadModal));
 cancelUploadBtn.addEventListener('click', () => closeModal(uploadModal));
-emptyUploadBtn.addEventListener('click', () => openModal(uploadModal));
+emptyUploadBtn.addEventListener('click', () => showModal(uploadModal)); // Đổi từ openModal sang showModal
 submitUploadBtn.addEventListener('click', handlePhotoUpload);
 
 yearFilter.addEventListener('change', filterPhotos);
@@ -65,6 +65,7 @@ document.addEventListener('keydown', (e) => {
 function initialize() {
     // Show preloader
     preloader.style.display = 'flex';
+    preloader.querySelector('p').textContent = 'Đang tải ảnh...';
     
     // Fetch photos from server
     fetch('/api/photos')

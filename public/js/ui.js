@@ -1,5 +1,5 @@
-// Mở modal
-function openModal(modal) {
+// Mở modal 
+function showModal(modal) {
     modal.classList.add('show');
 }
 
@@ -13,8 +13,8 @@ function showToast(title, message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     
-    const icon = type === 'success' 
-        ? '<i class="fas fa-check-circle toast-icon"></i>' 
+    const icon = type === 'success'
+        ? '<i class="fas fa-check-circle toast-icon"></i>'
         : '<i class="fas fa-exclamation-circle toast-icon"></i>';
     
     toast.innerHTML = `
