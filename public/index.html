@@ -36,6 +36,31 @@
         </div>
     </nav>
     
+    <!-- Favorite Photos Gallery -->
+    <div class="favorite-gallery-container" id="favorite-gallery-container">
+        <div class="favorite-gallery-header">
+            <h2><i class="fas fa-heart"></i> Ảnh Yêu Thích</h2>
+            <div class="gallery-controls">
+                <button id="gallery-prev" class="gallery-control"><i class="fas fa-chevron-left"></i></button>
+                <button id="gallery-pause" class="gallery-control"><i class="fas fa-pause"></i></button>
+                <button id="gallery-next" class="gallery-control"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+        <div class="favorite-gallery-wrapper">
+            <div class="favorite-gallery" id="favorite-gallery">
+                <!-- Gallery slides will be added here by JavaScript -->
+                <div class="empty-favorites" id="empty-favorites">
+                    <i class="fas fa-heart-broken"></i>
+                    <p>Chưa có ảnh yêu thích nào</p>
+                    <p class="empty-favorites-hint">Nhấn vào biểu tượng trái tim trên ảnh để thêm vào mục yêu thích</p>
+                </div>
+            </div>
+            <div class="gallery-indicators" id="gallery-indicators">
+                <!-- Indicator dots will be added here by JavaScript -->
+            </div>
+        </div>
+    </div>
+
     <!-- Main container -->
     <div class="main-container">
         <!-- Thêm card thông tin -->
@@ -69,6 +94,10 @@
                             <option value="2022">2022</option>
                             <option value="2021">2021</option>
                             <option value="2020">2020</option>
+                            <option value="2020">2019</option>
+                            <option value="2020">2018</option>
+                            <option value="2020">2017</option>
+                            <option value="2020">2016</option>
                         </select>
                     </div>
                     

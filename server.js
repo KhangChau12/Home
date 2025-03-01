@@ -382,6 +382,41 @@ app.put('/api/photos/:id/rename', async (req, res) => {
   }
 });
 
+// Cập nhật trạng thái yêu thích của ảnh
+app.put('/api/photos/:id/favorite', async (req, res) => {
+  try {
+    const photoId = req.params.id;
+    const { isFavorite } = req.body;
+    
+    // Tìm ảnh trong mảng
+    const photoIndex = photos.findIndex(photo => photo.id === photoId);
+    
+    if (photoIndex === -1) {
+      return res.status(404).json({ error: 'Photo not found' });
+    }
+    
+    // Cập nhật trạng thái yêu thích
+    photos[photoIndex].isFavorite = isFavorite;
+    
+    // Lưu metadata lên Drive
+    await saveMetadataToDrive();
+    
+    res.json({ 
+      success: true, 
+      photo: photos[photoIndex]
+    });
+  } catch (error) {
+    console.error('Favorite toggle error:', error);
+    res.status(500).json({ error: 'Failed to update favorite status', details: error.message });
+  }
+});
+
+// Lấy tất cả ảnh được đánh dấu yêu thích
+app.get('/api/photos/favorites', (req, res) => {
+  const favoritePhotos = photos.filter(photo => photo.isFavorite === true);
+  res.json(favoritePhotos);
+});
+
 // Xử lý tất cả các routes khác và chỉ đến index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
