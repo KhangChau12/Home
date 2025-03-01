@@ -20,8 +20,10 @@ const uploadModal = document.getElementById('upload-modal');
 const fullscreenView = document.getElementById('fullscreen-view');
 const fullscreenImg = document.getElementById('fullscreen-img');
 const preloader = document.getElementById('preloader');
+const navUploadBtn = document.querySelector('.navbar-actions .btn'); // Thêm nút tải ảnh trên navbar
 
 // Gallery elements
+const favoriteGalleryContainer = document.getElementById('favorite-gallery-container');
 const favoriteGallery = document.getElementById('favorite-gallery');
 const emptyFavorites = document.getElementById('empty-favorites');
 const galleryIndicators = document.getElementById('gallery-indicators');
@@ -31,6 +33,11 @@ const galleryPauseBtn = document.getElementById('gallery-pause');
 
 // Khởi tạo - Load ảnh từ API
 function init() {
+    // Kết nối nút tải ảnh trên thanh navigation
+    if (navUploadBtn) {
+        navUploadBtn.addEventListener('click', () => showModal(uploadModal));
+    }
+    
     // Hiển thị preloader khi tải ảnh
     preloader.style.display = 'flex';
     preloader.querySelector('p').textContent = 'Đang tải ảnh...';
@@ -80,10 +87,16 @@ function init() {
     document.getElementById('prev-photo').addEventListener('click', showPrevPhoto);
     document.getElementById('next-photo').addEventListener('click', showNextPhoto);
     
-    // Thiết lập sự kiện cho gallery
-    galleryPrevBtn.addEventListener('click', prevGallerySlide);
-    galleryNextBtn.addEventListener('click', nextGallerySlide);
-    galleryPauseBtn.addEventListener('click', toggleGalleryAutoplay);
+    // Thiết lập sự kiện cho gallery, kiểm tra các phần tử có tồn tại không
+    if (galleryPrevBtn) {
+        galleryPrevBtn.addEventListener('click', prevGallerySlide);
+    }
+    if (galleryNextBtn) {
+        galleryNextBtn.addEventListener('click', nextGallerySlide);
+    }
+    if (galleryPauseBtn) {
+        galleryPauseBtn.addEventListener('click', toggleGalleryAutoplay);
+    }
     
     // Thiết lập phím tắt
     document.addEventListener('keydown', function(e) {
@@ -99,24 +112,43 @@ function init() {
     });
     
     // Sự kiện tải ảnh khi nhấn nút từ empty state
-    document.getElementById('empty-upload-btn').addEventListener('click', function() {
-        showModal(uploadModal);
-    });
+    if (document.getElementById('empty-upload-btn')) {
+        document.getElementById('empty-upload-btn').addEventListener('click', function() {
+            showModal(uploadModal);
+        });
+    }
 }
 
 // Khởi tạo gallery ảnh yêu thích
 function initFavoriteGallery() {
-    // Xóa gallery cũ
-    clearGallery();
-    
-    // Hiển thị thông báo nếu không có ảnh yêu thích
-    if (favoritePhotos.length === 0) {
-        emptyFavorites.style.display = 'flex';
+    // Kiểm tra xem các phần tử gallery có tồn tại không
+    if (!favoriteGallery || !galleryIndicators) {
+        console.error('Không tìm thấy các phần tử gallery');
         return;
     }
     
-    // Ẩn thông báo trống
-    emptyFavorites.style.display = 'none';
+    // Xóa gallery cũ
+    clearGallery();
+    
+    // Hiển thị/ẩn container nếu không có ảnh yêu thích
+    if (favoriteGalleryContainer) {
+        if (favoritePhotos.length === 0) {
+            favoriteGalleryContainer.style.display = 'none';
+            return;
+        } else {
+            favoriteGalleryContainer.style.display = 'block';
+        }
+    }
+    
+    // Hiển thị thông báo nếu không có ảnh yêu thích
+    if (emptyFavorites) {
+        if (favoritePhotos.length === 0) {
+            emptyFavorites.style.display = 'flex';
+            return;
+        } else {
+            emptyFavorites.style.display = 'none';
+        }
+    }
     
     // Thêm từng slide ảnh yêu thích
     favoritePhotos.forEach((photo, index) => {
@@ -129,6 +161,17 @@ function initFavoriteGallery() {
         const img = document.createElement('img');
         img.src = photo.url;
         img.alt = photo.name || 'Ảnh yêu thích';
+        
+        // Thêm xử lý lỗi ảnh
+        img.onerror = function() {
+            console.error(`Lỗi tải ảnh gallery: ${photo.url}`);
+            // Thử lại với URL khác
+            if (photo.id) {
+                const fallbackUrl = `https://drive.google.com/thumbnail?id=${photo.id}&sz=w1000`;
+                console.log(`Thử tải lại với URL thay thế: ${fallbackUrl}`);
+                img.src = fallbackUrl;
+            }
+        };
         
         // Tạo thông tin slide
         const slideInfo = document.createElement('div');
@@ -185,6 +228,11 @@ function initFavoriteGallery() {
 
 // Xóa gallery
 function clearGallery() {
+    // Kiểm tra xem các phần tử gallery có tồn tại không
+    if (!favoriteGallery || !galleryIndicators) {
+        return;
+    }
+    
     // Xóa interval cũ
     if (galleryInterval) {
         clearInterval(galleryInterval);
@@ -208,6 +256,11 @@ function clearGallery() {
 
 // Bắt đầu autoplay gallery
 function startGalleryAutoplay() {
+    // Kiểm tra xem có ảnh yêu thích không
+    if (favoritePhotos.length === 0) {
+        return;
+    }
+    
     // Dừng interval cũ nếu có
     if (galleryInterval) {
         clearInterval(galleryInterval);
@@ -221,12 +274,19 @@ function startGalleryAutoplay() {
     }, 5000);
     
     // Cập nhật trạng thái button
-    galleryPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    if (galleryPauseBtn) {
+        galleryPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    }
     isGalleryPaused = false;
 }
 
 // Chuyển đến slide cụ thể
 function goToGallerySlide(index) {
+    // Kiểm tra nếu không có ảnh yêu thích
+    if (favoritePhotos.length === 0) {
+        return;
+    }
+    
     // Kiểm tra index
     if (index < 0) {
         index = favoritePhotos.length - 1;
@@ -265,17 +325,19 @@ function nextGallerySlide() {
 function toggleGalleryAutoplay() {
     isGalleryPaused = !isGalleryPaused;
     
-    if (isGalleryPaused) {
-        galleryPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
-    } else {
-        galleryPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+    if (galleryPauseBtn) {
+        if (isGalleryPaused) {
+            galleryPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        } else {
+            galleryPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        }
     }
 }
 
 // Lọc ảnh theo năm và người
 function filterPhotos() {
     const selectedYear = yearFilter.value;
-    const selectedPerson = document.querySelector('.badge[data-person].active').dataset.person;
+    const selectedPerson = document.querySelector('.badge[data-person].active')?.dataset.person || 'all';
     
     filteredPhotos = [...photos];
     
