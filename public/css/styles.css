@@ -1,22 +1,51 @@
 :root {
-    --primary-color: #5e72e4;
-    --primary-dark: #4454c3;
-    --secondary-color: #11cdef;
-    --accent-color: #fb6340;
-    --success-color: #2dce89;
-    --info-color: #11cdef;
-    --warning-color: #fb6340;
-    --danger-color: #f5365c;
+    /* Màu chính - Sử dụng màu xanh dương sâu hơn và tinh tế hơn */
+    --primary-color: #4361ee;
+    --primary-dark: #3a56e4;
+    --primary-light: #738dff;
+    
+    /* Màu phụ - Màu xanh ngọc hiện đại */
+    --secondary-color: #2ec4b6;
+    --secondary-dark: #21a99c;
+    --secondary-light: #48e5d7;
+    
+    /* Màu điểm nhấn - Màu hồng đào sang trọng */
+    --accent-color: #ff6b6b;
+    --accent-dark: #e55858;
+    --accent-light: #ff8a8a;
+    
+    /* Màu trạng thái */
+    --success-color: #0cce6b; /* Xanh lá rực rỡ hơn */
+    --info-color: #4cc9f0;    /* Xanh dương nhạt */
+    --warning-color: #ffbe0b; /* Vàng cam */
+    --danger-color: #ef476f;  /* Hồng đậm */
+    
+    /* Màu nền và chữ */
     --light-color: #f8f9fe;
-    --dark-color: #172b4d;
-    --text-color: #525f7f;
-    --text-light: #8898aa;
-    --shadow-sm: 0 0 0.5rem rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 0 1rem rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 0 2rem rgba(0, 0, 0, 0.15);
-    --gradient-primary: linear-gradient(87deg, #5e72e4 0, #825ee4 100%);
-    --border-radius: 0.375rem;
-    --transition: all 0.15s ease;
+    --light-gray: #f0f4f8;
+    --gray-color: #e9ecef;
+    --dark-gray: #8490a6;
+    --dark-color: #2d3748;
+    --text-color: #374151;
+    --text-light: #6b7280;
+    
+    /* Hiệu ứng */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+    --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    
+    /* Gradient đẹp */
+    --gradient-primary: linear-gradient(135deg, #4361ee 0%, #3a56e4 100%);
+    --gradient-accent: linear-gradient(135deg, #ff6b6b 0%, #ef476f 100%);
+    --gradient-cool: linear-gradient(135deg, #4cc9f0 0%, #2ec4b6 100%);
+    
+    /* Các tham số khác */
+    --border-radius: 0.5rem;
+    --border-radius-lg: 0.75rem;
+    --border-radius-sm: 0.375rem;
+    --border-radius-full: 9999px;
+    --transition: all 0.2s ease;
 }
 
 * {

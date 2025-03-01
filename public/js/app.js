@@ -25,6 +25,7 @@ const closeFullscreenBtn = document.getElementById('close-fullscreen');
 const prevPhotoBtn = document.getElementById('prev-photo');
 const nextPhotoBtn = document.getElementById('next-photo');
 const toastContainer = document.getElementById('toast-container');
+const navUploadBtn = document.querySelector('.navbar-actions .btn');
 
 // Set current date as default for photo upload
 photoDateInput.valueAsDate = new Date();
@@ -32,6 +33,9 @@ photoDateInput.valueAsDate = new Date();
 // Event Listeners
 document.addEventListener('DOMContentLoaded', initialize);
 showUploadModalBtn.addEventListener('click', () => showModal(uploadModal)); // Đổi từ openModal sang showModal
+if (navUploadBtn) {
+    navUploadBtn.addEventListener('click', () => showModal(uploadModal));
+}
 closeUploadModalBtn.addEventListener('click', () => closeModal(uploadModal));
 cancelUploadBtn.addEventListener('click', () => closeModal(uploadModal));
 emptyUploadBtn.addEventListener('click', () => showModal(uploadModal)); // Đổi từ openModal sang showModal
