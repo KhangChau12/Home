@@ -11,7 +11,12 @@ const PORT = process.env.PORT || 3000;
 // Cấu hình lưu trữ tạm thời cho file upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'tmp/uploads/');
+    // Đảm bảo thư mục tồn tại
+    const uploadsDir = path.join(__dirname, 'tmp/uploads');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
@@ -26,13 +31,20 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Google Drive API setup
-// Google Drive API setup
-let auth;
-let drive;
+const SCOPES = ['https://www.googleapis.com/auth/drive'];
+const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || 'your-folder-id';
+// Folder ID ẩn để lưu metadata của ảnh (có thể tạo một thư mục riêng cho metadata)
+const METADATA_FOLDER_ID = process.env.GOOGLE_DRIVE_METADATA_FOLDER_ID || FOLDER_ID;
 
-// Kiểm tra nếu có service account key trong biến môi trường
+// Biến toàn cục cho Drive client
+let drive;
+// Biến lưu trữ dữ liệu ảnh trong bộ nhớ
+let photos = [];
+
+// Khởi tạo Google Drive client
 async function initDriveAuth() {
   try {
+    let auth;
     if (process.env.GOOGLE_SERVICE_ACCOUNT) {
       // Sử dụng service account key từ biến môi trường
       const serviceAccountKey = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
@@ -48,25 +60,6 @@ async function initDriveAuth() {
       });
     }
     
-    const authClient = await auth.getClient();
-    drive = google.drive({ version: 'v3', auth: authClient });
-    console.log("Google Drive API initialized successfully");
-  } catch (error) {
-    console.error("Failed to initialize Google Drive API:", error);
-  }
-}
-const SCOPES = ['https://www.googleapis.com/auth/drive'];
-const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || 'your-folder-id'; // Thay đổi sau
-
-// Khởi tạo Google Drive client
-const auth = new google.auth.GoogleAuth({
-  keyFile: KEYFILEPATH,
-  scopes: SCOPES,
-});
-let drive;
-
-async function initDrive() {
-  try {
     const authClient = await auth.getClient();
     drive = google.drive({ version: 'v3', auth: authClient });
     console.log("Google Drive API initialized successfully");
@@ -130,36 +123,106 @@ async function deleteFileFromDrive(fileId) {
   }
 }
 
-// Biến lưu trữ dữ liệu ảnh (thay thế Firebase)
-let photos = [];
-
-// Tải dữ liệu ảnh từ file JSON khi khởi động server
-const PHOTOS_FILE = path.join(__dirname, 'data/photos.json');
-
-function loadPhotos() {
+// Hàm lưu metadata vào Drive
+async function saveMetadataToDrive() {
   try {
-    if (fs.existsSync(PHOTOS_FILE)) {
-      const data = fs.readFileSync(PHOTOS_FILE, 'utf8');
-      photos = JSON.parse(data);
-      console.log(`Loaded ${photos.length} photos from storage`);
+    // Tạo tên file metadata với timestamp để đảm bảo độc nhất
+    const metadataFileName = `photos_metadata_${Date.now()}.json`;
+    const tempFilePath = path.join(__dirname, 'tmp', metadataFileName);
+    
+    // Tạo thư mục tmp nếu chưa tồn tại
+    const tmpDir = path.join(__dirname, 'tmp');
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir, { recursive: true });
     }
+    
+    // Ghi metadata vào file tạm
+    fs.writeFileSync(tempFilePath, JSON.stringify(photos, null, 2));
+    
+    // Tìm và xóa các file metadata cũ
+    try {
+      const metadataQuery = `name contains 'photos_metadata_' and '${METADATA_FOLDER_ID}' in parents`;
+      const oldFiles = await drive.files.list({
+        q: metadataQuery,
+        fields: 'files(id, name)',
+      });
+      
+      // Xóa các file metadata cũ
+      if (oldFiles.data.files && oldFiles.data.files.length > 0) {
+        for (const file of oldFiles.data.files) {
+          await drive.files.delete({ fileId: file.id });
+          console.log(`Deleted old metadata file: ${file.name}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error cleaning old metadata files:', error);
+      // Tiếp tục mặc dù có lỗi khi xóa file cũ
+    }
+    
+    // Upload file metadata mới lên Drive
+    const fileMetadata = {
+      name: metadataFileName,
+      parents: [METADATA_FOLDER_ID], 
+      mimeType: 'application/json'
+    };
+    
+    const media = {
+      mimeType: 'application/json',
+      body: fs.createReadStream(tempFilePath),
+    };
+    
+    const response = await drive.files.create({
+      resource: fileMetadata,
+      media: media,
+      fields: 'id',
+    });
+    
+    // Xóa file tạm sau khi tải lên
+    fs.unlinkSync(tempFilePath);
+    console.log('Metadata saved to Drive successfully');
+    
+    return response.data.id;
   } catch (error) {
-    console.error('Error loading photos:', error);
-    photos = [];
+    console.error('Error saving metadata to Drive:', error);
+    throw error;
   }
 }
 
-function savePhotos() {
+// Hàm tải metadata từ Drive
+async function loadMetadataFromDrive() {
   try {
-    // Đảm bảo thư mục data tồn tại
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir);
-    }
+    // Tìm file metadata mới nhất
+    const metadataQuery = `name contains 'photos_metadata_' and '${METADATA_FOLDER_ID}' in parents`;
+    const files = await drive.files.list({
+      q: metadataQuery,
+      orderBy: 'createdTime desc',
+      pageSize: 1,
+      fields: 'files(id, name)',
+    });
     
-    fs.writeFileSync(PHOTOS_FILE, JSON.stringify(photos, null, 2));
+    if (files.data.files && files.data.files.length > 0) {
+      const metadataFile = files.data.files[0];
+      console.log(`Found metadata file: ${metadataFile.name}`);
+      
+      // Tải xuống file metadata
+      const response = await drive.files.get({
+        fileId: metadataFile.id,
+        alt: 'media'
+      });
+      
+      // Cập nhật biến photos
+      photos = response.data;
+      console.log(`Loaded ${photos.length} photos from Drive metadata`);
+      return true;
+    } else {
+      console.log('No metadata file found in Drive');
+      photos = [];
+      return false;
+    }
   } catch (error) {
-    console.error('Error saving photos:', error);
+    console.error('Error loading metadata from Drive:', error);
+    photos = [];
+    return false;
   }
 }
 
@@ -196,8 +259,8 @@ app.post('/api/photos/upload', upload.single('photo'), async (req, res) => {
     // Thêm vào mảng ảnh
     photos.unshift(newPhoto);
     
-    // Lưu vào file
-    savePhotos();
+    // Lưu metadata lên Drive
+    await saveMetadataToDrive();
     
     res.json({
       success: true,
@@ -227,8 +290,8 @@ app.delete('/api/photos/:id', async (req, res) => {
     // Xóa khỏi mảng
     photos.splice(photoIndex, 1);
     
-    // Lưu vào file
-    savePhotos();
+    // Lưu metadata lên Drive
+    await saveMetadataToDrive();
     
     res.json({ success: true });
   } catch (error) {
@@ -242,19 +305,13 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Tạo thư mục uploads nếu chưa tồn tại
-const uploadsDir = path.join(__dirname, 'tmp/uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
 // Khởi động server
 async function startServer() {
   // Khởi tạo Drive API
   await initDriveAuth();
   
-  // Tải dữ liệu ảnh
-  loadPhotos();
+  // Tải metadata từ Drive
+  await loadMetadataFromDrive();
   
   // Khởi động server
   app.listen(PORT, () => {
