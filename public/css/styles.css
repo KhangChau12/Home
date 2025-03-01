@@ -910,3 +910,71 @@ a:hover {
     from { opacity: 1; }
     to { opacity: 0; visibility: hidden; }
 }
+
+/* Styles cho tên ảnh */
+.photo-name {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Cập nhật cho photo-actions để chứa nhiều nút hơn */
+.photo-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+/* Thêm màu sắc cho các nút */
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background-color: #138496;
+}
+
+/* Thêm tooltip khi hover lên nút */
+.btn-icon-only {
+    position: relative;
+}
+
+.btn-icon-only:hover::after {
+    content: attr(title);
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+/* Hiệu ứng khi hover lên nút */
+.btn-icon-only:hover {
+    transform: scale(1.1);
+}
+
+/* Tăng kích thước nút trong overlay để dễ nhấn */
+@media (max-width: 768px) {
+    .photo-actions .btn-icon-only {
+        width: 32px;
+        height: 32px;
+    }
+}

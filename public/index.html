@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kỷ Niệm Gia Đình</title>
+    <title>Kỷ Niệm Gia Đình - Lưu Giữ Những Khoảnh Khắc Đẹp</title>
+    <meta name="description" content="Ứng dụng lưu trữ và chia sẻ ảnh gia đình với khả năng tổ chức theo timeline, tìm kiếm và lọc theo người.">
+    <meta name="author" content="Châu Phúc Khang">
+    <meta name="theme-color" content="#5c6bc0">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +38,20 @@
     
     <!-- Main container -->
     <div class="main-container">
+        <!-- Thêm card thông tin -->
+        <div class="card info-card" style="margin-bottom: 1rem;">
+            <div class="card-header">
+                <h2 class="card-title">Hướng dẫn sử dụng</h2>
+            </div>
+            <div class="card-body">
+                <p>
+                    <i class="fas fa-info-circle"></i> 
+                    Sử dụng các bộ lọc để tìm ảnh theo năm và thành viên gia đình. 
+                    Nhấn vào ảnh để xem toàn màn hình. Sử dụng các nút trên mỗi ảnh để xem, tải về, đổi tên hoặc xóa ảnh.
+                </p>
+            </div>
+        </div>
+        
         <!-- Filter Card -->
         <div class="card">
             <div class="card-header">
@@ -163,6 +180,7 @@
             <i class="fas fa-chevron-left"></i>
         </button>
         <img src="" alt="Fullscreen view" class="fullscreen-img" id="fullscreen-img">
+        <div class="fullscreen-caption" id="fullscreen-caption"></div>
         <button class="fullscreen-next" id="next-photo">
             <i class="fas fa-chevron-right"></i>
         </button>

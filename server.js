@@ -84,7 +84,7 @@ async function uploadFileToDrive(fileObject) {
     const response = await drive.files.create({
       resource: fileMetadata,
       media: media,
-      fields: 'id,webViewLink,webContentLink',
+      fields: 'id,webViewLink,webContentLink,name',
     });
     
     // Thiết lập quyền truy cập công khai
@@ -99,10 +99,15 @@ async function uploadFileToDrive(fileObject) {
     // Xóa file tạm sau khi tải lên
     fs.unlinkSync(fileObject.path);
     
+    // Tạo đường dẫn trực tiếp đến ảnh sử dụng fileId
+    const directImageUrl = `https://drive.google.com/uc?export=view&id=${response.data.id}`;
+    
     return {
       id: response.data.id,
+      name: response.data.name,
       viewLink: response.data.webViewLink,
       downloadLink: response.data.webContentLink,
+      directUrl: directImageUrl
     };
   } catch (error) {
     console.error('Error uploading file to Drive:', error);
@@ -119,6 +124,27 @@ async function deleteFileFromDrive(fileId) {
     return true;
   } catch (error) {
     console.error('Error deleting file from Drive:', error);
+    throw error;
+  }
+}
+
+// Hàm đổi tên file trên Drive
+async function renameFileOnDrive(fileId, newName) {
+  try {
+    const response = await drive.files.update({
+      fileId: fileId,
+      resource: {
+        name: newName
+      },
+      fields: 'id,name'
+    });
+    
+    return {
+      id: response.data.id,
+      name: response.data.name
+    };
+  } catch (error) {
+    console.error('Error renaming file on Drive:', error);
     throw error;
   }
 }
@@ -211,7 +237,25 @@ async function loadMetadataFromDrive() {
       });
       
       // Cập nhật biến photos
-      photos = response.data;
+      const loadedPhotos = response.data;
+      
+      // Kiểm tra và sửa URL cho mỗi ảnh
+      loadedPhotos.forEach(photo => {
+        // Đảm bảo URL hình ảnh sử dụng định dạng trực tiếp
+        if (photo.id && (!photo.url || !photo.url.includes('uc?export=view'))) {
+          photo.url = `https://drive.google.com/uc?export=view&id=${photo.id}`;
+        }
+        // Đảm bảo có downloadUrl
+        if (photo.id && !photo.downloadUrl) {
+          photo.downloadUrl = photo.downloadLink || `https://drive.google.com/uc?export=download&id=${photo.id}`;
+        }
+        // Đảm bảo có tên file
+        if (!photo.name && photo.id) {
+          photo.name = photo.id; // Sử dụng ID làm tên nếu không có
+        }
+      });
+      
+      photos = loadedPhotos;
       console.log(`Loaded ${photos.length} photos from Drive metadata`);
       return true;
     } else {
@@ -249,7 +293,9 @@ app.post('/api/photos/upload', upload.single('photo'), async (req, res) => {
     // Tạo đối tượng ảnh mới
     const newPhoto = {
       id: result.id,
-      url: result.downloadLink,
+      name: result.name,
+      url: result.directUrl,
+      downloadUrl: result.downloadLink,
       date: date,
       year: new Date(date).getFullYear(),
       people: peopleArray,
@@ -297,6 +343,42 @@ app.delete('/api/photos/:id', async (req, res) => {
   } catch (error) {
     console.error('Delete error:', error);
     res.status(500).json({ error: 'Delete failed', details: error.message });
+  }
+});
+
+// Đổi tên ảnh
+app.put('/api/photos/:id/rename', async (req, res) => {
+  try {
+    const photoId = req.params.id;
+    const { newName } = req.body;
+    
+    if (!newName || newName.trim() === '') {
+      return res.status(400).json({ error: 'New name cannot be empty' });
+    }
+    
+    // Tìm ảnh trong mảng
+    const photoIndex = photos.findIndex(photo => photo.id === photoId);
+    
+    if (photoIndex === -1) {
+      return res.status(404).json({ error: 'Photo not found' });
+    }
+    
+    // Đổi tên trên Google Drive
+    const result = await renameFileOnDrive(photoId, newName);
+    
+    // Cập nhật trong mảng local
+    photos[photoIndex].name = result.name;
+    
+    // Lưu metadata lên Drive
+    await saveMetadataToDrive();
+    
+    res.json({ 
+      success: true, 
+      photo: photos[photoIndex]
+    });
+  } catch (error) {
+    console.error('Rename error:', error);
+    res.status(500).json({ error: 'Rename failed', details: error.message });
   }
 });
 
