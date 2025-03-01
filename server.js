@@ -26,7 +26,35 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Google Drive API setup
-const KEYFILEPATH = path.join(__dirname, 'service-account-key.json');
+// Google Drive API setup
+let auth;
+let drive;
+
+// Kiểm tra nếu có service account key trong biến môi trường
+async function initDriveAuth() {
+  try {
+    if (process.env.GOOGLE_SERVICE_ACCOUNT) {
+      // Sử dụng service account key từ biến môi trường
+      const serviceAccountKey = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT);
+      auth = new google.auth.GoogleAuth({
+        credentials: serviceAccountKey,
+        scopes: SCOPES
+      });
+    } else {
+      // Sử dụng file key nếu không có biến môi trường (cho môi trường phát triển)
+      auth = new google.auth.GoogleAuth({
+        keyFile: path.join(__dirname, 'service-account-key.json'),
+        scopes: SCOPES,
+      });
+    }
+    
+    const authClient = await auth.getClient();
+    drive = google.drive({ version: 'v3', auth: authClient });
+    console.log("Google Drive API initialized successfully");
+  } catch (error) {
+    console.error("Failed to initialize Google Drive API:", error);
+  }
+}
 const SCOPES = ['https://www.googleapis.com/auth/drive'];
 const FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || 'your-folder-id'; // Thay đổi sau
 
@@ -223,7 +251,7 @@ if (!fs.existsSync(uploadsDir)) {
 // Khởi động server
 async function startServer() {
   // Khởi tạo Drive API
-  await initDrive();
+  await initDriveAuth();
   
   // Tải dữ liệu ảnh
   loadPhotos();
