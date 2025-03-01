@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kỷ Niệm Gia Đình</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS chính -->
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-spinner"></div>
+        <p>Đang tải...</p>
+    </div>
+    
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <h1 class="navbar-logo"><i class="fas fa-heart"></i> Kỷ Niệm Gia Đình</h1>
+            <div class="navbar-actions">
+                <button class="btn btn-primary" id="show-upload-modal">
+                    <i class="fas fa-cloud-upload-alt"></i> Tải ảnh lên
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main container -->
+    <div class="main-container">
+        <!-- Filter Card -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Bộ lọc</h2>
+            </div>
+            <div class="card-body">
+                <div class="row" style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label class="form-label" for="year-filter">Năm</label>
+                        <select class="form-select" id="year-filter">
+                            <option value="all">Tất cả các năm</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1; min-width: 200px;">
+                        <label class="form-label">Thành viên gia đình</label>
+                        <div class="filter-badges">
+                            <span class="badge badge-primary active" data-person="all">
+                                Tất cả <i class="fas fa-check"></i>
+                            </span>
+                            <span class="badge badge-secondary" data-person="Anh Hai">
+                                Anh Hai
+                            </span>
+                            <span class="badge badge-secondary" data-person="Bo Bo">
+                                Bo Bo
+                            </span>
+                            <span class="badge badge-secondary" data-person="Ba">
+                                Ba
+                            </span>
+                            <span class="badge badge-secondary" data-person="Mẹ">
+                                Mẹ
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Timeline Section -->
+        <div class="timeline" id="photos-timeline">
+            <!-- Empty state (shown when no photos are available) -->
+            <div class="empty-state" id="empty-timeline">
+                <i class="fas fa-images"></i>
+                <h3>Chưa có ảnh nào</h3>
+                <p>Hãy tải lên ảnh đầu tiên để bắt đầu lưu giữ kỷ niệm gia đình!</p>
+                <button class="btn btn-primary" id="empty-upload-btn">
+                    <i class="fas fa-cloud-upload-alt"></i> Tải ảnh lên
+                </button>
+            </div>
+            
+            <!-- Timeline years will be added here by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Upload Modal -->
+    <div class="modal" id="upload-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tải ảnh lên</h5>
+                    <button type="button" class="modal-close" id="close-upload-modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="upload-form">
+                        <div class="form-group">
+                            <label class="form-label">Chọn ảnh</label>
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="photo-upload" accept="image/*" multiple>
+                                <label class="custom-file-label" for="photo-upload">Chọn ảnh...</label>
+                            </div>
+                            <div id="selected-files" style="margin-top: 0.5rem;"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="photo-date">Ngày chụp</label>
+                            <input type="date" class="form-control" id="photo-date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Người trong ảnh</label>
+                            <div class="checkbox-group">
+                                <div class="form-checkbox">
+                                    <input type="checkbox" id="person-anh-hai" value="Anh Hai">
+                                    <label for="person-anh-hai">Anh Hai</label>
+                                </div>
+                                <div class="form-checkbox">
+                                    <input type="checkbox" id="person-bo-bo" value="Bo Bo">
+                                    <label for="person-bo-bo">Bo Bo</label>
+                                </div>
+                                <div class="form-checkbox">
+                                    <input type="checkbox" id="person-ba" value="Ba">
+                                    <label for="person-ba">Ba</label>
+                                </div>
+                                <div class="form-checkbox">
+                                    <input type="checkbox" id="person-me" value="Mẹ">
+                                    <label for="person-me">Mẹ</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" id="cancel-upload">Hủy</button>
+                    <button type="button" class="btn btn-primary" id="submit-upload">
+                        <i class="fas fa-cloud-upload-alt"></i> Tải lên
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Fullscreen Photo View -->
+    <div class="fullscreen-photo" id="fullscreen-view">
+        <button class="fullscreen-close" id="close-fullscreen">
+            <i class="fas fa-times"></i>
+        </button>
+        <button class="fullscreen-prev" id="prev-photo">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <img src="" alt="Fullscreen view" class="fullscreen-img" id="fullscreen-img">
+        <button class="fullscreen-next" id="next-photo">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+    
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <!-- JavaScript -->
+    <script src="js/ui.js"></script>
+    <script src="js/photos.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
